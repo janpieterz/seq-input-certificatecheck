@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+      <VersionPrefix>0.1.0</VersionPrefix>
+      <Description>Seq Certificate Check: periodically get endpoint certificates, validate their expiration and publish results to Seq.</Description>
+      <Authors>Jan-Pieter George</Authors>
+      <PackageTags>seq-app</PackageTags>
+      <PackageProjectUrl>https://github.com/janpieterz/seq-input-certificatecheck</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/janpieterz/seq-input-certificatecheck</RepositoryUrl>
+      <RepositoryType>git</RepositoryType>
+      <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors />
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Seq.Apps" Version="5.1.0" />
+
+        <PackageReference Include="newtonsoft.json" Version="12.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="./obj/publish/**/*" Exclude="./obj/publish/Seq.Input.CertificateCheck.dll;./obj/publish/Seq.Apps.dll;./obj/publish/Serilog.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
+    </ItemGroup>
+
+</Project>
