@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using Seq.Apps;
 
 namespace Seq.Input.CertificateCheck
@@ -10,6 +13,11 @@ namespace Seq.Input.CertificateCheck
     public class CertificateCheckInput : SeqApp, IPublishJson, IDisposable 
     {
         readonly List<CertificateCheckTask> _certificateCheckTasks = new List<CertificateCheckTask>();
+        private HttpClient _httpClient;
+
+        private readonly ConcurrentDictionary<Uri, X509Certificate2> _certificates =
+            new ConcurrentDictionary<Uri, X509Certificate2>();
+
         [SeqAppSetting(
             DisplayName = "Target URLs",
             HelpText = "The HTTPS URL using the certificate that this check will periodically verify. Multiple URLs " +
@@ -30,6 +38,7 @@ namespace Seq.Input.CertificateCheck
 
         public void Start(TextWriter inputWriter)
         {
+            _httpClient = HttpCertificateCheckClient.Create(ReceivedCertificate);
             var reporter = new CertificateCheckReporter(inputWriter);
             var targetUrls = TargetUrl.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var targetUrl in targetUrls)
@@ -37,13 +46,34 @@ namespace Seq.Input.CertificateCheck
                 var healthCheck = new CertificateValidityCheck(
                     App.Title,
                     targetUrl,
-                    ValidityDays);
+                    ValidityDays, 
+                    _httpClient,
+                    Lookup);
 
                 _certificateCheckTasks.Add(new CertificateCheckTask(
                     healthCheck,
                     TimeSpan.FromSeconds(IntervalSeconds),
                     reporter,
                     Log));
+            }
+        }
+        private X509Certificate2 Lookup(Uri endpoint)
+        {
+            if (_certificates.TryGetValue(endpoint, out X509Certificate2 certificate))
+            {
+                return certificate;
+            }
+            return null;
+        }
+        private void ReceivedCertificate(Uri endpoint, X509Certificate2 certificate)
+        {
+            try
+            {
+                _certificates.AddOrUpdate(endpoint, certificate, (uri, certificate2) => certificate);
+            }
+            catch (Exception)
+            {
+                //Swallow all exceptions
             }
         }
 
@@ -61,6 +91,7 @@ namespace Seq.Input.CertificateCheck
             {
                 task.Dispose();
             }
+            _httpClient?.Dispose();
         }
     }
 }

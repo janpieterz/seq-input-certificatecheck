@@ -12,12 +12,17 @@ namespace Seq.Input.CertificateCheck
         private readonly string _title;
         private readonly string _targetUrl;
         private readonly int _validityDays;
+        private readonly HttpClient _httpClient;
+        private readonly Func<Uri, X509Certificate2> _certificateLookup;
         const string OutcomeSucceeded = "succeeded", OutcomeFailed = "failed";
-        public CertificateValidityCheck(string title, string targetUrl, int validityDays)
+        public CertificateValidityCheck(string title, string targetUrl, int validityDays, HttpClient httpClient, Func<Uri, X509Certificate2> certificateLookup)
         {
             _title = title ?? throw new ArgumentNullException(nameof(title));
             _targetUrl = targetUrl ?? throw new ArgumentNullException(nameof(targetUrl));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _validityDays = validityDays;
+            _httpClient = httpClient;
+            _certificateLookup = certificateLookup;
         }
 
         public async Task<CertificateCheckResult> CheckNow(CancellationToken cancel)
@@ -27,22 +32,11 @@ namespace Seq.Input.CertificateCheck
             DateTime? expiresAtUtc = null;
             try
             {
-                X509Certificate2 certificate = null;
-                HttpClientHandler handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = delegate (HttpRequestMessage message, X509Certificate2 x509Certificate2, X509Chain arg3,
-                        SslPolicyErrors arg4)
-                    {
-                        certificate = new X509Certificate2(x509Certificate2.RawData);
-                        return true;
-                    }
-                };
-                HttpClient client = new HttpClient(handler, true);
-                await client.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
+                var result = await _httpClient.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
+                var certificate = _certificateLookup(result.RequestMessage.RequestUri);
                 expiresAtUtc = certificate?.NotAfter;
                 bool valid = expiresAtUtc.HasValue && expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays);
                 outcome = valid ? OutcomeSucceeded : OutcomeFailed;
-                client.Dispose();
             }
             catch (Exception)
             {

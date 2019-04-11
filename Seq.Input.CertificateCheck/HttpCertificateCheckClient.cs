@@ -7,13 +7,13 @@ namespace Seq.Input.CertificateCheck
 {
     public static class HttpCertificateCheckClient
     {
-        public static HttpClient Create(Action<X509Certificate2> certificateCallback)
+        public static HttpClient Create(Action<Uri, X509Certificate2> certificateCallback)
         {
             var handler = new HttpClientHandler { AllowAutoRedirect = false, ServerCertificateCustomValidationCallback = delegate (HttpRequestMessage message, X509Certificate2 x509Certificate2, X509Chain arg3,
                     SslPolicyErrors arg4)
                 {
                     var certificate = new X509Certificate2(x509Certificate2.RawData);
-                    certificateCallback(certificate);
+                    certificateCallback(message.RequestUri, certificate);
                     return true;
                 }
             };
