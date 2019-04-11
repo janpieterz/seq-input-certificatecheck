@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +11,9 @@ namespace Seq.Input.CertificateCheck
         private readonly string _targetUrl;
         private readonly int _validityDays;
         private readonly HttpClient _httpClient;
-        private readonly Func<Uri, X509Certificate2> _certificateLookup;
+        private readonly Func<Uri, DateTime?> _certificateLookup;
         const string OutcomeSucceeded = "succeeded", OutcomeFailed = "failed";
-        public CertificateValidityCheck(string title, string targetUrl, int validityDays, HttpClient httpClient, Func<Uri, X509Certificate2> certificateLookup)
+        public CertificateValidityCheck(string title, string targetUrl, int validityDays, HttpClient httpClient, Func<Uri, DateTime?> certificateLookup)
         {
             _title = title ?? throw new ArgumentNullException(nameof(title));
             _targetUrl = targetUrl ?? throw new ArgumentNullException(nameof(targetUrl));
@@ -33,8 +31,8 @@ namespace Seq.Input.CertificateCheck
             try
             {
                 var result = await _httpClient.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
-                var certificate = _certificateLookup(result.RequestMessage.RequestUri);
-                expiresAtUtc = certificate?.NotAfter;
+                expiresAtUtc = _certificateLookup(result.RequestMessage.RequestUri);
+                
                 bool valid = expiresAtUtc.HasValue && expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays);
                 outcome = valid ? OutcomeSucceeded : OutcomeFailed;
             }

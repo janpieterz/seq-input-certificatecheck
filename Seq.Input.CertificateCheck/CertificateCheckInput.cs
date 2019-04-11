@@ -15,8 +15,8 @@ namespace Seq.Input.CertificateCheck
         readonly List<CertificateCheckTask> _certificateCheckTasks = new List<CertificateCheckTask>();
         private HttpClient _httpClient;
 
-        private readonly ConcurrentDictionary<Uri, X509Certificate2> _certificates =
-            new ConcurrentDictionary<Uri, X509Certificate2>();
+        private readonly ConcurrentDictionary<Uri, DateTime> _certificates =
+            new ConcurrentDictionary<Uri, DateTime>();
 
         [SeqAppSetting(
             DisplayName = "Target URLs",
@@ -48,7 +48,7 @@ namespace Seq.Input.CertificateCheck
                     targetUrl,
                     ValidityDays, 
                     _httpClient,
-                    Lookup);
+                    LookupExpiration);
 
                 _certificateCheckTasks.Add(new CertificateCheckTask(
                     healthCheck,
@@ -57,9 +57,9 @@ namespace Seq.Input.CertificateCheck
                     Log));
             }
         }
-        private X509Certificate2 Lookup(Uri endpoint)
+        private DateTime? LookupExpiration(Uri endpoint)
         {
-            if (_certificates.TryGetValue(endpoint, out X509Certificate2 certificate))
+            if (_certificates.TryGetValue(endpoint, out DateTime certificate))
             {
                 return certificate;
             }
@@ -69,7 +69,7 @@ namespace Seq.Input.CertificateCheck
         {
             try
             {
-                _certificates.AddOrUpdate(endpoint, certificate, (uri, certificate2) => certificate);
+                _certificates.AddOrUpdate(endpoint, certificate.NotAfter, (uri, certificate2) => certificate.NotAfter);
             }
             catch (Exception)
             {
