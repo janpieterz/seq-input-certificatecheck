@@ -19,18 +19,15 @@ namespace Seq.Input.CertificateCheck
             _validityDays = validityDays;
         }
 
-        public async Task<CertificateCheckResult> CheckNow(CancellationToken cancel, ILogger diagnosticLog)
+        public async Task<CertificateCheckResult> CheckNow(HttpClientWrapper httpClientWrapper, CancellationToken cancel, ILogger diagnosticLog)
         {
             string outcome;
             var utcTimestamp = DateTime.UtcNow;
             DateTime? expiresAtUtc = null;
             try
             {
-                using (HttpClient client = HttpCertificateCheckClient.Create((expiration) => expiresAtUtc = expiration))
-                {
-                    await client.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
-                }
-                bool valid = expiresAtUtc.HasValue ? expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays) : false;
+                expiresAtUtc = await httpClientWrapper.CheckEndpoint(new Uri(_targetUrl), cancel).ConfigureAwait(false);
+                bool valid = expiresAtUtc.HasValue && expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays);
                 outcome = valid ? OutcomeSucceeded : OutcomeFailed;
             }
             catch (Exception exception)

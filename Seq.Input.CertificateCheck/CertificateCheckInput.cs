@@ -12,8 +12,8 @@ namespace Seq.Input.CertificateCheck
         Description = "Periodically get endpoint certificates, validate their expiration and publish results to Seq.")]
     public class CertificateCheckInput : SeqApp, IPublishJson, IDisposable 
     {
-        readonly List<CertificateCheckTask> _certificateCheckTasks = new List<CertificateCheckTask>();
-
+        private readonly List<CertificateCheckTask> _certificateCheckTasks = new List<CertificateCheckTask>();
+        private HttpClientWrapper _httpClientWrapper;
         [SeqAppSetting(
             DisplayName = "Target URLs",
             HelpText = "The HTTPS URL using the certificate that this check will periodically verify. Multiple URLs " +
@@ -33,6 +33,7 @@ namespace Seq.Input.CertificateCheck
 
         public void Start(TextWriter inputWriter)
         {
+            _httpClientWrapper = new HttpClientWrapper();
             var reporter = new CertificateCheckReporter(inputWriter);
             var targetUrls = TargetUrl.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var targetUrl in targetUrls)
@@ -46,6 +47,7 @@ namespace Seq.Input.CertificateCheck
                     healthCheck,
                     TimeSpan.FromSeconds(IntervalSeconds),
                     reporter,
+                    _httpClientWrapper,
                     Log));
             }
         }

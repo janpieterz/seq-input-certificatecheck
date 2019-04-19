@@ -8,24 +8,26 @@ namespace Seq.Input.CertificateCheck
 {
     internal class CertificateCheckTask : IDisposable
     {
+        private readonly HttpClientWrapper _httpClientWrapper;
         readonly CancellationTokenSource _cancel = new CancellationTokenSource();
         readonly Task _certificateCheckTask;
-        public CertificateCheckTask(CertificateValidityCheck certificateCheck, TimeSpan interval, CertificateCheckReporter reporter, ILogger diagnosticLog)
+        public CertificateCheckTask(CertificateValidityCheck certificateCheck, TimeSpan interval, CertificateCheckReporter reporter, HttpClientWrapper httpClientWrapper, ILogger diagnosticLog)
         {
             if (certificateCheck == null) throw new ArgumentNullException(nameof(certificateCheck));
             if (reporter == null) throw new ArgumentNullException(nameof(reporter));
+            _httpClientWrapper = httpClientWrapper;
             _certificateCheckTask =
-                Task.Run(() => Run(certificateCheck, interval, reporter, diagnosticLog, _cancel.Token), _cancel.Token);
+                Task.Run(() => Run(certificateCheck, interval, reporter, _httpClientWrapper, diagnosticLog, _cancel.Token), _cancel.Token);
         }
 
-        private static async Task Run(CertificateValidityCheck certificateCheck, TimeSpan interval, CertificateCheckReporter reporter, ILogger diagnosticLog, CancellationToken cancel)
+        private static async Task Run(CertificateValidityCheck certificateCheck, TimeSpan interval, CertificateCheckReporter reporter, HttpClientWrapper httpClientWrapper, ILogger diagnosticLog, CancellationToken cancel)
         {
             try
             {
                 while (!cancel.IsCancellationRequested)
                 {
                     var sw = Stopwatch.StartNew();
-                    var result = await certificateCheck.CheckNow(cancel, diagnosticLog).ConfigureAwait(false);
+                    var result = await certificateCheck.CheckNow(httpClientWrapper, cancel, diagnosticLog).ConfigureAwait(false);
                     reporter.Report(result);
                     sw.Stop();
                     var total = sw.Elapsed.TotalMilliseconds;
