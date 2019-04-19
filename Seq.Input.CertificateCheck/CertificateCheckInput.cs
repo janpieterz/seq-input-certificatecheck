@@ -13,10 +13,6 @@ namespace Seq.Input.CertificateCheck
     public class CertificateCheckInput : SeqApp, IPublishJson, IDisposable 
     {
         readonly List<CertificateCheckTask> _certificateCheckTasks = new List<CertificateCheckTask>();
-        private HttpClient _httpClient;
-
-        private readonly ConcurrentDictionary<Uri, DateTime> _certificates =
-            new ConcurrentDictionary<Uri, DateTime>();
 
         [SeqAppSetting(
             DisplayName = "Target URLs",
@@ -35,11 +31,8 @@ namespace Seq.Input.CertificateCheck
             HelpText = "The minimum amount of days a certificate should be valid; the default is 30")]
         public int ValidityDays { get; set; } = 30;
 
-        private TextWriter _inputWriter;
         public void Start(TextWriter inputWriter)
         {
-            _httpClient = HttpCertificateCheckClient.Create(ReceivedCertificate);
-            _inputWriter = inputWriter;
             var reporter = new CertificateCheckReporter(inputWriter);
             var targetUrls = TargetUrl.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var targetUrl in targetUrls)
@@ -47,34 +40,13 @@ namespace Seq.Input.CertificateCheck
                 var healthCheck = new CertificateValidityCheck(
                     App.Title,
                     targetUrl,
-                    ValidityDays, 
-                    _httpClient,
-                    LookupExpiration);
+                    ValidityDays);
 
                 _certificateCheckTasks.Add(new CertificateCheckTask(
                     healthCheck,
                     TimeSpan.FromSeconds(IntervalSeconds),
                     reporter,
                     Log));
-            }
-        }
-        private DateTime? LookupExpiration(Uri endpoint)
-        {
-            if (_certificates.TryGetValue(endpoint, out DateTime certificate))
-            {
-                return certificate;
-            }
-            return null;
-        }
-        private void ReceivedCertificate(Uri endpoint, X509Certificate2 certificate)
-        {
-            try
-            {
-                _certificates.AddOrUpdate(endpoint, certificate.NotAfter, (uri, certificate2) => certificate.NotAfter);
-            }
-            catch (Exception exception)
-            {
-                Log.Error(exception, "Something went wrong adding certificate");
             }
         }
 
@@ -92,7 +64,6 @@ namespace Seq.Input.CertificateCheck
             {
                 task.Dispose();
             }
-            _httpClient?.Dispose();
         }
     }
 }

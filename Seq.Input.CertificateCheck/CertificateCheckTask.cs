@@ -25,7 +25,7 @@ namespace Seq.Input.CertificateCheck
                 while (!cancel.IsCancellationRequested)
                 {
                     var sw = Stopwatch.StartNew();
-                    var result = await certificateCheck.CheckNow(cancel).ConfigureAwait(false);
+                    var result = await certificateCheck.CheckNow(cancel, diagnosticLog).ConfigureAwait(false);
                     reporter.Report(result);
                     sw.Stop();
                     var total = sw.Elapsed.TotalMilliseconds;

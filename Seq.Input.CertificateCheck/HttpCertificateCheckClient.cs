@@ -1,24 +1,20 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Seq.Input.CertificateCheck
 {
     public static class HttpCertificateCheckClient
     {
-        public static HttpClient Create(Action<Uri, X509Certificate2> certificateCallback)
+        public static HttpClient Create(Action<DateTime> certificateExpiration)
         {
             var handler = new HttpClientHandler
             {
-                AllowAutoRedirect = true, ServerCertificateCustomValidationCallback = delegate(
-                    HttpRequestMessage message, X509Certificate2 x509Certificate2, X509Chain arg3,
-                    SslPolicyErrors arg4)
+                AllowAutoRedirect = true,
+                ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) =>
                 {
-                    var certificate = new X509Certificate2(x509Certificate2.RawData);
-                    certificateCallback(message.RequestUri, certificate);
+                    certificateExpiration(certificate2.NotAfter);
                     return true;
-                },
+                }
             };
             var httpClient = new HttpClient(handler);
             httpClient.DefaultRequestHeaders.Connection.Add("Close");

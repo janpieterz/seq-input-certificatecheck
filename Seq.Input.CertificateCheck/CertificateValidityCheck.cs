@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace Seq.Input.CertificateCheck
 {
@@ -10,33 +11,31 @@ namespace Seq.Input.CertificateCheck
         private readonly string _title;
         private readonly string _targetUrl;
         private readonly int _validityDays;
-        private readonly HttpClient _httpClient;
-        private readonly Func<Uri, DateTime?> _certificateLookup;
         const string OutcomeSucceeded = "succeeded", OutcomeFailed = "failed";
-        public CertificateValidityCheck(string title, string targetUrl, int validityDays, HttpClient httpClient, Func<Uri, DateTime?> certificateLookup)
+        public CertificateValidityCheck(string title, string targetUrl, int validityDays)
         {
             _title = title ?? throw new ArgumentNullException(nameof(title));
             _targetUrl = targetUrl ?? throw new ArgumentNullException(nameof(targetUrl));
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _validityDays = validityDays;
-            _certificateLookup = certificateLookup;
         }
 
-        public async Task<CertificateCheckResult> CheckNow(CancellationToken cancel)
+        public async Task<CertificateCheckResult> CheckNow(CancellationToken cancel, ILogger diagnosticLog)
         {
             string outcome;
             var utcTimestamp = DateTime.UtcNow;
             DateTime? expiresAtUtc = null;
             try
             {
-                var result = await _httpClient.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
-                expiresAtUtc = _certificateLookup(result.RequestMessage.RequestUri);
-                
-                bool valid = expiresAtUtc.HasValue && expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays);
+                using (HttpClient client = HttpCertificateCheckClient.Create((expiration) => expiresAtUtc = expiration))
+                {
+                    await client.GetAsync(_targetUrl, cancel).ConfigureAwait(false);
+                }
+                bool valid = expiresAtUtc.HasValue ? expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays) : false;
                 outcome = valid ? OutcomeSucceeded : OutcomeFailed;
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                diagnosticLog.Error(exception, "Something went wrong while checking certificate");
                 outcome = OutcomeFailed;
             }
 
