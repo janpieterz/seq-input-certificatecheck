@@ -35,10 +35,11 @@ namespace Seq.Input.CertificateCheck
             HelpText = "The minimum amount of days a certificate should be valid; the default is 30")]
         public int ValidityDays { get; set; } = 30;
 
-
+        private TextWriter _inputWriter;
         public void Start(TextWriter inputWriter)
         {
             _httpClient = HttpCertificateCheckClient.Create(ReceivedCertificate);
+            _inputWriter = inputWriter;
             var reporter = new CertificateCheckReporter(inputWriter);
             var targetUrls = TargetUrl.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var targetUrl in targetUrls)
@@ -71,9 +72,9 @@ namespace Seq.Input.CertificateCheck
             {
                 _certificates.AddOrUpdate(endpoint, certificate.NotAfter, (uri, certificate2) => certificate.NotAfter);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                //Swallow all exceptions
+                Log.Error(exception, "Something went wrong adding certificate");
             }
         }
 

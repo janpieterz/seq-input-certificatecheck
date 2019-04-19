@@ -19,7 +19,6 @@ namespace Seq.Input.CertificateCheck
             _targetUrl = targetUrl ?? throw new ArgumentNullException(nameof(targetUrl));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _validityDays = validityDays;
-            _httpClient = httpClient;
             _certificateLookup = certificateLookup;
         }
 

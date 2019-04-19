@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using Seq.Apps;
@@ -26,7 +25,7 @@ namespace Terminal
                     TargetUrl = $"https://api.arke.io/up{Environment.NewLine}https://app.arke.io/up.json",
                     IntervalSeconds = 5
                 };
-                var testHost = new TestHost {App = new App("1", "test", new Dictionary<string, string>(), "")};
+                var testHost = new TestHost {App = new App("1", "test", new Dictionary<string, string>(){}, "")};
 
                 runner.Attach(testHost);
                 runner.Start(writer);
