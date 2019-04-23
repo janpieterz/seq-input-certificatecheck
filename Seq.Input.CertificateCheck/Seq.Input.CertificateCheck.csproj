@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-      <VersionPrefix>0.2.8</VersionPrefix>
+      <VersionPrefix>1.0.0</VersionPrefix>
       <Description>Seq Certificate Check: periodically get endpoint certificates, validate their expiration and publish results to Seq.</Description>
       <Authors>Jan-Pieter George</Authors>
       <PackageTags>seq-app</PackageTags>
