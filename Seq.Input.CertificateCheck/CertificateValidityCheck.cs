@@ -42,7 +42,7 @@ namespace Seq.Input.CertificateCheck
 
             return new CertificateCheckResult(utcTimestamp, _title, _targetUrl, outcome, level, certificateInformation?.LastExpiration,
                 certificateInformation?.Issuer, certificateInformation?.Subject, certificateInformation?.Thumbprint,
-                certificateInformation.SerialNumber, certificateInformation.SubjectAlternativeNames);
+                certificateInformation?.SerialNumber, certificateInformation?.SubjectAlternativeNames);
         }
     }
 }
