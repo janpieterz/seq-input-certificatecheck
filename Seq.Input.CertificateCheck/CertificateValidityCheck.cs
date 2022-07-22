@@ -23,11 +23,12 @@ namespace Seq.Input.CertificateCheck
         {
             string outcome;
             var utcTimestamp = DateTime.UtcNow;
-            DateTime? expiresAtUtc = null;
+            CertificateInformation certificateInformation = null;
+
             try
             {
-                expiresAtUtc = await httpClientWrapper.CheckEndpoint(new Uri(_targetUrl), cancel).ConfigureAwait(false);
-                bool valid = expiresAtUtc.HasValue && expiresAtUtc.Value > DateTime.UtcNow.AddDays(_validityDays);
+                certificateInformation = await httpClientWrapper.CheckEndpoint(new Uri(_targetUrl), cancel).ConfigureAwait(false);
+                bool valid = certificateInformation.LastExpiration.HasValue && certificateInformation.LastExpiration > DateTime.UtcNow.AddDays(_validityDays);
                 outcome = valid ? OutcomeSucceeded : OutcomeFailed;
             }
             catch (Exception exception)
@@ -39,7 +40,9 @@ namespace Seq.Input.CertificateCheck
             var level = outcome == OutcomeFailed ? "Error" :
                 null;
 
-            return new CertificateCheckResult(utcTimestamp, _title, _targetUrl, outcome, level, expiresAtUtc);
+            return new CertificateCheckResult(utcTimestamp, _title, _targetUrl, outcome, level, certificateInformation?.LastExpiration,
+                certificateInformation?.Issuer, certificateInformation?.Subject, certificateInformation?.Thumbprint,
+                certificateInformation?.SerialNumber, certificateInformation?.SubjectAlternativeNames);
         }
     }
 }
