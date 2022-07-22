@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-      <VersionPrefix>1.0.0-forked</VersionPrefix>
-      <Description>Seq Certificate Check: periodically get endpoint certificates, validate their expiration and publish results to Seq. (Forked by Deswik) *** Not Supported ***</Description>
+      <VersionPrefix>1.0.1</VersionPrefix>
+      <Description>Seq Certificate Check: periodically get endpoint certificates, validate their expiration and publish results to Seq.</Description>
       <Authors>Jan-Pieter George</Authors>
       <PackageTags>seq-app</PackageTags>
       <PackageProjectUrl>https://github.com/janpieterz/seq-input-certificatecheck</PackageProjectUrl>
       <RepositoryUrl>https://github.com/janpieterz/seq-input-certificatecheck</RepositoryUrl>
+      <PackageIconUrl>https://raw.githubusercontent.com/janpieterz/seq-input-certificatecheck/master/asset/seq-input-certificatecheck.png</PackageIconUrl>
       <RepositoryType>git</RepositoryType>
       <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
       <TreatSpecificWarningsAsErrors />
