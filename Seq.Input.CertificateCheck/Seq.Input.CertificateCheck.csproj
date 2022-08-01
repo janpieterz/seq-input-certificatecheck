@@ -8,7 +8,7 @@
       <PackageTags>seq-app</PackageTags>
       <PackageProjectUrl>https://github.com/janpieterz/seq-input-certificatecheck</PackageProjectUrl>
       <RepositoryUrl>https://github.com/janpieterz/seq-input-certificatecheck</RepositoryUrl>
-      <PackageIconUrl>https://raw.githubusercontent.com/janpieterz/seq-input-certificatecheck/master/asset/seq-input-certificatecheck.png</PackageIconUrl>
+      <PackageIcon>icon.png</PackageIcon>
       <RepositoryType>git</RepositoryType>
       <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
       <TreatSpecificWarningsAsErrors />
@@ -25,5 +25,9 @@
     <ItemGroup>
         <None Include="./obj/publish/**/*" Exclude="./obj/publish/Seq.Input.CertificateCheck.dll;./obj/publish/Seq.Apps.dll;./obj/publish/Serilog.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
     </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="../asset/seq-input-certificatecheck.png" Pack="true" PackagePath="\icon.png"/>
+  </ItemGroup>
 
 </Project>

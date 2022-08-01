@@ -1,0 +1,32 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build -c Release --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish Seq.Input.CertificateCheck --configuration Release --no-build --no-restore --verbosity normal
+    - name: Pack
+      run: dotnet pack Seq.Input.CertificateCheck --output ./ --configuration Release --include-source --include-symbols --no-build --no-restore --verbosity normal
+    - name: Push to Nuget
+      if:  endsWith(github.ref, 'main')
+      run: dotnet nuget push "*.nupkg" --api-key secrets.NUGET_API_KEY
