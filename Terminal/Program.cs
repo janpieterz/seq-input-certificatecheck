@@ -23,7 +23,7 @@ namespace Terminal
                 args = new string[] { "https://api.arke.io/up", "https://app.arke.io/up.json" };
             }
             Logger generalLog = new Serilog.LoggerConfiguration().WriteTo.Console(outputTemplate: "[MAIN][{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties}{NewLine}{Exception}").CreateLogger();
-            Logger selfLog = new Serilog.LoggerConfiguration().WriteTo.Console(outputTemplate: "[\x1b[43;34mSELF\x1b[0m][{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}").CreateLogger();
+            Logger selfLog = new Serilog.LoggerConfiguration().WriteTo.Console(outputTemplate: "[\x1b[43;34mSELF\x1b[0m][{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties}{NewLine}{Exception}").CreateLogger();
             TestHost testHost = new TestHost { App = new App("1", "test", new Dictionary<string, string>() { }, ""), Logger = selfLog };
 
             AnonymousPipeServerStream hostPipe = new AnonymousPipeServerStream(PipeDirection.In);
@@ -45,14 +45,20 @@ namespace Terminal
                 {
                     try
                     {
-                        string sEvent = newEventTask.Result;
+                        string sEvent = await newEventTask;
                         JObject jEvent = JObject.Parse(sEvent);
                         LogEvent lEvent = LogEventReader.ReadFromJObject(jEvent);
                         generalLog.Write(lEvent);
                     }
                     catch(Exception ex)
                     {
-                        selfLog.Fatal(ex, "HOST: Could not read event.");
+                        string sEvent = "";
+                        try
+                        {
+                            sEvent = await newEventTask;
+                        }
+                        catch { }
+                        selfLog.ForContext("Event", sEvent).Fatal(ex, "HOST: Could not read event.");
                     }
                 }
             }
