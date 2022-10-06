@@ -7,6 +7,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seq.Input.CertificateCheck"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal", "Terminal\Terminal.csproj", "{C7A49FCC-C63B-4F3B-8471-AAFE6842C3D0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{9ED2BBBA-C820-45DF-9517-65E7A8373DCC}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		LICENSE = LICENSE
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{3B6157E3-04A1-4FB0-A702-9E3B2661ACEF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{196C2298-31AE-4DEB-A807-4E58525E388A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,5 +41,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98348BA4-3EE4-496A-B613-5B317B6FD487}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{196C2298-31AE-4DEB-A807-4E58525E388A} = {3B6157E3-04A1-4FB0-A702-9E3B2661ACEF}
 	EndGlobalSection
 EndGlobal
