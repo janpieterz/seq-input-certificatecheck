@@ -14,9 +14,8 @@ namespace Seq.Input.CertificateCheck.Extensions
             Regex sanRex = new Regex(@"^DNS Name=(.*)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
             var sanList = from X509Extension ext in cert.Extensions
-                where ext.Oid.FriendlyName.Equals("Subject Alternative Name", StringComparison.Ordinal)
-                let data = new AsnEncodedData(ext.Oid, ext.RawData)
-                let text = data.Format(true)
+                where "2.5.29.17".Equals(ext.Oid.Value, StringComparison.Ordinal) // OID for Subject Alternative Name
+                let text = ext.Format(true)
                 from line in text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 let match = sanRex.Match(line)
                 where match.Success && match.Groups.Count > 0 && !string.IsNullOrEmpty(match.Groups[1].Value)
