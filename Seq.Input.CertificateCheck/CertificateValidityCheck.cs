@@ -33,7 +33,7 @@ namespace Seq.Input.CertificateCheck
             }
             catch (Exception exception)
             {
-                diagnosticLog.Error(exception, "Something went wrong while checking certificate");
+                diagnosticLog.Error(exception, "Something went wrong while checking certificate for {TargetUrl}", _targetUrl);
                 outcome = OutcomeFailed;
             }
 
