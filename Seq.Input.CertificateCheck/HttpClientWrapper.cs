@@ -47,21 +47,25 @@ namespace Seq.Input.CertificateCheck
         public async Task<CertificateInformation> CheckEndpoint(Uri endpoint, CancellationToken cancel)
         {
             await _semaphore.WaitAsync(cancel).ConfigureAwait(false);
-            await _httpClient.GetAsync(endpoint, cancel).ConfigureAwait(false);
-            var result = new CertificateInformation
+            try
             {
-                Subject = _subject,
-                Issuer = _issuer,
-                LastExpiration = _lastExpiration,
-                Thumbprint = _thumbprint,
-                SerialNumber = _serialNumber,
-                SubjectAlternativeNames = _subjectAlternativeNames,
-            };
-            _lastExpiration = null;
-            _semaphore.Release();
-            return result;
+                await _httpClient.GetAsync(endpoint, cancel).ConfigureAwait(false);
+                var result = new CertificateInformation
+                {
+                    Subject = _subject,
+                    Issuer = _issuer,
+                    LastExpiration = _lastExpiration,
+                    Thumbprint = _thumbprint,
+                    SerialNumber = _serialNumber,
+                    SubjectAlternativeNames = _subjectAlternativeNames,
+                };
+                _lastExpiration = null;
+                return result;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
     }
-    
-    
 }
